@@ -218,7 +218,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&l
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 /* ---- Red flags: fixed rules, never decided by the AI. Over-triggers on purpose (e.g. "no chest pain"). ---- */
-const RED = [/chest (pain|pressure|tightness)/, /douleur (a la |dans la )?(poitrine|thoracique)/, /(can.?t|cannot|difficulty|trouble) breath/, /short(ness)? of breath/,
+const RED = [/chest (pains?|pressure|tightness)/, /douleurs? (a la |dans la |au |de la )?(poitrine|thoracique|coeur)/, /(mal|oppression|serrement) (a la |dans la )?(poitrine|thoracique)/, /(can.?t|cannot|difficulty|trouble) breath/, /short(ness)? of breath/,
   /(difficulte|mal|n.?arrive pas) a respirer/, /essoufflement/, /unconscious|passed out|fainted|not responding/, /inconscient|perte de connaissance|evanoui/,
   /severe bleeding|bleeding (a lot|heavily)|won.?t stop bleeding/, /saignement (abondant|important)|hemorragie/, /seizure|convulsion/,
   /face (is )?droop|slurred speech|sudden (weakness|numbness)|paralys/, /visage (qui )?(tombe|paralys)|parle mal|paralysie/,
@@ -286,13 +286,13 @@ $("form").addEventListener("submit", async (e) => {
     await ready;
     if (initError) { setBadge("", "Ready"); $("status").textContent = startFail(); return; }
     let res;
-    try { res = await generate(localModel, d); }
+    try { res = await generate(localModel, d); res.src = "ON_DEVICE"; /* ONLY_ON_DEVICE guarantees the path */ }
     catch (err) {
       console.warn("On-device unavailable:", err);
       $("payload").textContent = `Age range: ${d.age}\nDuration: ${d.dur}\nDescription: ${d.text}`;
       if (!(await ask())) { setBadge("", "Ready"); $("status").textContent = "Nothing was sent. Your text stays on this device."; return; }
       $("status").textContent = "Sending to the cloud…";
-      res = await withFallback((m) => generate(cloudFor(m), d));
+      res = await withFallback((m) => generate(cloudFor(m), d)); res.src = "IN_CLOUD"; /* ONLY_IN_CLOUD guarantees the path */
     }
     setBadge(...(SRC[res.src] || ["", "Done"]));
     $("status").textContent = "";
