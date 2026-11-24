@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health+ – prepare for a medical visit, even offline</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#0b1b3a;--mute:#5b6478;--line:#d9dfea;--panel:#f3f6fb;--blue:#013AFB;--blue2:#0030D4;--mint:#2DFFA8;--green:#0b7a53;--amber:#b45309;--red:#c62828;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:17px/1.6 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);
+background-image:linear-gradient(rgba(1,58,251,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(1,58,251,.045) 1px,transparent 1px);background-size:32px 32px;background-attachment:fixed}
+header{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 20px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--line)}
+header h1{margin:0;font:400 1.7rem/1 Anton,Impact,"Arial Narrow",sans-serif;letter-spacing:.05em}
+header h1 span{color:var(--blue)}
+#badge{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid var(--line);font-weight:600;font-size:.9rem;color:var(--mute);background:#fff}
+#badge::before{content:"";width:9px;height:9px;background:currentColor}
+#badge.local{color:var(--green);border-color:var(--green);background:#eafaf3}
+#badge.cloud{background:var(--blue);border-color:var(--blue);color:#fff}
+#strip{display:flex;flex-wrap:wrap;gap:6px 18px;padding:8px 20px;background:var(--panel);border-bottom:1px solid var(--line);font-size:.82rem;color:var(--mute)}
+#strip span::before{content:"";display:inline-block;width:7px;height:7px;margin-right:7px;background:var(--mute)}
+#net.ok::before{background:var(--green)}#net.off::before{background:var(--amber)}
+main{max-width:980px;margin:0 auto;padding:28px 20px 110px}
+form,#result,#sres,#hlist,.view>.sub{max-width:700px}
+.hero{margin:6px 0 10px;font:400 clamp(2.4rem,8vw,3.8rem)/1.04 Anton,Impact,"Arial Narrow",sans-serif;text-transform:uppercase}
+.hero em{font-style:normal;color:var(--blue)}
+.hero.small{font-size:2.3rem}
+.sub{margin:0 0 22px;color:var(--mute);max-width:56ch}
+.notice{max-width:700px;border:1px solid var(--line);border-left:4px solid var(--amber);padding:10px 14px;margin:0 0 24px;background:#fff;font-size:.95rem}
+.sec{margin:36px 0 14px;font:400 1.7rem/1.1 Anton,Impact,"Arial Narrow",sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.sec::before,#result h3::before{content:"";display:inline-block;width:10px;height:10px;background:var(--blue);margin-right:10px;vertical-align:2px}
+label{display:block;font-weight:600;margin:18px 0 6px}
+textarea,select,input[type=text]{width:100%;padding:12px;border:1px solid var(--line);border-radius:0;font:inherit;color:var(--ink);background:#fff}
+textarea{min-height:150px;resize:vertical}
+textarea::placeholder{color:#8a93a8}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+button{font:inherit;font-weight:700;padding:13px 24px;border:1px solid var(--blue);border-radius:0;background:var(--blue);color:#fff;cursor:pointer;margin-top:22px}
+button:hover{background:var(--blue2)}
+button.ghost{background:#fff;color:var(--blue);margin-left:8px}
+button.ghost:hover{background:var(--panel)}
+button:disabled{opacity:.5;cursor:wait}
+@media(max-width:520px){button.ghost{margin-left:0}}
+.cta button:first-child{margin-right:8px}
+#status,#sstat{min-height:1.6em;margin-top:12px;color:var(--mute)}
+#result,#sres{margin-top:30px}
+.band{border:1px solid var(--line);border-left:6px solid var(--mute);padding:8px 18px;background:var(--panel)}
+.band.routine{border-left-color:var(--green)}.band.soon{border-left-color:var(--amber)}.band.urgent{border-left-color:var(--red)}
+.band h2{margin:4px 0;font:400 1.7rem/1.1 Anton,Impact,"Arial Narrow",sans-serif;letter-spacing:.02em}
+.band.routine h2{color:var(--green)}.band.soon h2{color:var(--amber)}.band.urgent h2{color:var(--red)}
+#result h3,#sres h3{margin:24px 0 4px;font-size:1.05rem}
+#result ul,#sres ul{margin:0;padding-left:22px}
+pre{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);padding:12px;font:inherit}
+dialog{max-width:520px;color:var(--ink);background:#fff;border:1px solid var(--blue);border-radius:0;padding:24px}
+dialog::backdrop{background:rgba(11,27,58,.6)}
+#emerg{background:var(--red);color:#fff;border:0;max-width:none;width:100%;height:100%;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center}
+#emerg[open]{display:flex}
+#emerg h2{font:400 2.6rem/1.05 Anton,Impact,"Arial Narrow",sans-serif;margin:0 0 8px;text-transform:uppercase}
+#emerg a.call{display:inline-block;background:#fff;color:var(--red);font-weight:800;font-size:1.4rem;padding:16px 32px;text-decoration:none;margin-top:18px}
+#emerg button{background:transparent;border:1px solid #fff;color:#fff}
+.view{display:none}.view.on{display:block}
+fieldset{border:1px solid var(--line);margin:18px 0 0;padding:4px 16px 16px;background:var(--panel)}
+legend{padding:0 8px;color:var(--blue);font-weight:600}
+.checks label{display:inline-flex;align-items:center;gap:8px;margin:6px 16px 0 0;font-weight:400}
+.drop{display:block;margin-top:22px;padding:28px 16px;border:1px dashed var(--blue);text-align:center;color:var(--blue);cursor:pointer;background:#fff}
+.drop:hover{background:var(--panel)}
+#prev,#pimg{display:block;max-width:100%;max-height:260px;margin:14px 0;border:1px solid var(--line)}
+#prev[hidden],#pimg[hidden]{display:none}
+.rec{border:1px solid var(--line);background:#fff;margin-bottom:10px;padding:10px 14px}.rec summary{cursor:pointer}
+.rec b.routine{color:var(--green)}.rec b.soon{color:var(--amber)}.rec b.urgent{color:var(--red)}
+.hero-grid,.split{display:grid;gap:34px;grid-template-columns:1fr;align-items:center}
+@media(min-width:760px){.hero-grid{grid-template-columns:1.1fr .9fr}.split{grid-template-columns:.8fr 1.2fr}}
+.frame{position:relative;margin:0}
+.frame::before{content:"";position:absolute;left:-12px;top:-12px;width:88px;height:88px;background:rgba(1,58,251,.1)}
+.frame::after{content:"";position:absolute;right:-8px;bottom:-8px;width:26px;height:26px;background:var(--blue)}
+.frame img{position:relative;z-index:1;display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.frame.tall img{aspect-ratio:4/5;object-position:50% 62%}
+.frame.banner img{aspect-ratio:16/6;object-position:50% 30%}
+.frame.banner{margin:0 0 26px;max-width:700px}
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:760px){.steps{grid-template-columns:repeat(4,1fr)}}
+.steps li{background:var(--panel);border:1px solid var(--line);padding:16px}
+.steps b{display:block;margin:12px 0 4px}.steps p{margin:0;font-size:.93rem;color:var(--mute)}
+.ico{display:inline-flex;width:44px;height:44px;align-items:center;justify-content:center;background:rgba(1,58,251,.1);color:var(--blue)}
+.ticks{list-style:none;margin:0;padding:0}
+.ticks li{position:relative;padding-left:22px;margin-bottom:8px}
+.ticks li::before{content:"";position:absolute;left:0;top:.6em;width:9px;height:9px;background:var(--blue)}
+blockquote{margin:0 0 14px;padding:14px 18px;border-left:4px solid var(--blue);background:var(--panel);max-width:700px}
+blockquote p{margin:0 0 6px;font-size:1.08rem}blockquote cite{font-size:.88rem;color:var(--mute);font-style:normal}
+.fine{margin-top:26px;font-size:.88rem;color:var(--mute);max-width:700px}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);background:rgba(255,255,255,.97);border-top:1px solid var(--line)}
+#tabs button{margin:0;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:3px;background:transparent;color:var(--mute);border:0;border-top:3px solid transparent;font-size:.78rem;font-weight:600}
+#tabs button:hover{background:var(--panel)}
+#tabs button.on{color:var(--blue);border-top-color:var(--blue)}
+#tabs svg{width:24px;height:24px}
+.pro{margin-top:26px;border:1px solid var(--line);background:#fff;padding:10px 16px;max-width:700px}
+.pro summary{cursor:pointer;font-weight:700;color:var(--blue)}
+.pro dt{font-weight:700;margin-top:12px}.pro dd{margin:2px 0 0}.pro .fine{margin:10px 0 0}
+</style>
+</head>
+<body>
+<header><h1>HEALTH<span>+</span></h1><span id="badge" role="status">Ready</span></header>
+<div id="strip"><span id="net">Online</span><span id="nano">On-device model: checking…</span><span id="cnt"></span></div>
+<main>
+<p class="notice"><strong>This is not a diagnosis.</strong> Health+ helps you prepare for a visit to a health professional. In an emergency, call your local emergency services.</p>
+<div class="view on" id="v-home">
+<section class="hero-grid"><div><h2 class="hero">Know what to tell <em>your doctor.</em></h2>
+<p class="sub">Health+ helps you prepare a medical visit. Describe your symptoms, add a photo of a prescription or a skin area, and get a clear summary to show to a health professional. It keeps working with a weak or no connection.</p>
+<div class="cta"><button type="button" data-go="check">Start a check</button><button type="button" class="ghost" data-go="scan">Scan a photo</button></div></div>
+<figure class="frame"><img src="img/hero-heart.svg" alt="Illustration of a heart with a pulse line"></figure></section>
+<h3 class="sec">How it works</h3>
+<ol class="steps">
+<li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 11.5h2l1-2 2 4 1-2h2.5"/></svg></span><b>Describe</b><p>Write how you feel, in English or French. Warning signs such as chest pain or trouble breathing open an emergency screen at once, using fixed rules and not AI.</p></li>
+<li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10"/><path d="M9.5 3v4M14.5 3v4M9.5 17v4M14.5 17v4M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/></svg></span><b>On-device AI</b><p>Gemini Nano, built into Chrome, turns your words into a structured summary on your own device. Nothing is sent.</p></li>
+<li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .6-7.95A5.5 5.5 0 0 0 7 8.8 4.6 4.6 0 0 0 7 18z"/></svg></span><b>Cloud, only if you agree</b><p>If the on-device model is not available, or for photos, you see exactly what would be sent and you choose. A badge shows which AI answered.</p></li>
+<li><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M9.5 12h6M9.5 16h6"/></svg></span><b>Show your summary</b><p>Take the summary to a health professional. It is saved only on your device.</p></li></ol>
+<section class="split" style="margin-top:36px"><figure class="frame tall"><img src="img/stethoscope.svg" alt="Illustration of a stethoscope" loading="lazy"></figure>
+<div><h3 class="sec" style="margin-top:0">Private by design</h3><ul class="ticks">
+<li>Your symptom text stays on your device by default.</li><li>Photos lose their location data before anything is sent.</li>
+<li>A skin photo needs a detailed description first.</li><li>Health+ never diagnoses, never names a disease and never suggests a treatment.</li></ul></div></section>
+<h3 class="sec">Why it matters</h3>
+<blockquote><p>“Health is a state of complete physical, mental and social well-being and not merely the absence of disease or infirmity.”</p><cite>Constitution of the World Health Organization, 1946</cite></blockquote>
+<blockquote><p>“As to diseases, make a habit of two things — to help, or at least to do no harm.”</p><cite>Hippocrates, Epidemics, Book I (translation by W. H. S. Jones)</cite></blockquote>
+<p class="fine">In 1978 the Declaration of Alma-Ata made primary health care the heart of “Health for All”. Health+ is a preparation tool, not a medical device, and it does not replace a health professional.</p>
+</div>
+<div class="view" id="v-check">
+<figure class="frame banner"><img src="img/health-ui.svg" alt="Illustration of health icons around a medical cross" loading="lazy"></figure>
+<h2 class="hero">Check your <em>symptoms.</em></h2>
+<p class="sub">Describe how you feel. Health+ prepares a clear summary, and the AI runs on your device first.</p>
+
+<form id="form">
+  <label for="text">Describe the symptoms in your own words (English or French)</label>
+  <textarea id="text" required minlength="40" placeholder="What do you feel, where, since when, and what changed? Do not write your name."></textarea>
+  <div class="row">
+    <div><label for="age">Age range</label>
+    <select id="age"><option>Under 3 months</option><option>3 months – 11 years</option><option>12 – 17 years</option><option selected>18 – 64 years</option><option>65 years or older</option></select></div>
+    <div><label for="dur">Since when?</label>
+    <select id="dur"><option>Less than a day</option><option>1 – 3 days</option><option>4 – 14 days</option><option>More than 2 weeks</option></select></div>
+  </div>
+  <button id="go" type="submit">Check and summarize</button><button class="ghost" id="clear" type="button">Delete all saved data</button>
+</form>
+<p id="status" aria-live="polite"></p>
+<section id="result" hidden></section>
+</div>
+<div class="view" id="v-scan"><h2 class="hero small">Scan a photo</h2>
+<p class="sub">Prescription, medicine box or skin area. A photo is analyzed in the cloud only after you approve what is sent. Location data is removed from the image on your device.</p>
+<form id="sform"><label for="stype">What is on the photo?</label>
+<select id="stype"><option value="rx">Prescription or medicine box</option><option value="skin">Skin area</option></select>
+<fieldset id="skinq" hidden><legend>Describe it first (required for skin photos)</legend>
+<label for="sarea">Where on the body?</label><input id="sarea" type="text" autocomplete="off">
+<div class="row"><div><label for="ssince">Since when?</label><select id="ssince"><option>Less than a day</option><option>1 – 3 days</option><option>4 – 14 days</option><option>More than 2 weeks</option></select></div>
+<div><label for="schange">How is it changing?</label><select id="schange"><option>Not changing</option><option>Slowly changing</option><option>Spreading fast</option></select></div></div>
+<label>Signs</label><div class="checks"><label><input type="checkbox" name="sg" value="Pain"> Pain</label><label><input type="checkbox" name="sg" value="Itching"> Itching</label><label><input type="checkbox" name="sg" value="Bleeding or oozing"> Bleeding or oozing</label><label><input type="checkbox" name="sg" value="Fever"> Fever</label></div>
+<label for="snotes">Details: how it looks and feels, what you tried</label><textarea id="snotes" minlength="40"></textarea></fieldset>
+<label class="drop" for="file"><span id="fname">Tap to add a photo (JPEG or PNG)</span><input id="file" type="file" accept="image/jpeg,image/png" hidden></label>
+<img id="prev" alt="Selected photo preview" hidden>
+<button id="go2" type="submit">Analyze photo</button></form>
+<p id="sstat" aria-live="polite"></p><section id="sres" hidden></section></div>
+<div class="view" id="v-hist"><h2 class="hero small">Saved on this device</h2>
+<p class="sub">Summaries stay on this device unless you share them yourself.</p><div id="hlist"></div></div>
+</main>
+<nav id="tabs"><button type="button" data-v="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/></svg><span>Home</span></button><button type="button" data-v="check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M7.5 11.5h2l1-2 2 4 1-2h2.5"/></svg><span>Check</span></button><button type="button" data-v="scan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l1.5-2h7L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg><span>Scan</span></button><button type="button" data-v="hist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span>History</span></button></nav>
+
+
+<dialog id="consent">
+  <h2>Send to the cloud?</h2>
+  <p>On-device AI is not available on this device. To continue, the text below would be sent to a Google server. Nothing is sent without your choice.</p>
+  <pre id="payload"></pre><img id="pimg" alt="" hidden>
+  <button id="yes">Send to cloud</button><button class="ghost" id="no">Keep on this device only</button>
+</dialog>
+<dialog id="emerg">
+  <h2>This may be an emergency</h2>
+  <p>Call your local emergency services now, or go to the nearest health facility.</p>
+  <div id="callbox"></div>
+  <button id="cont">Continue anyway</button>
+</dialog>
+
+<script src="config.js"></script>
+<script type="module">
+/* ---- CONFIG lives in config.js (never overwritten when the app is updated) ---- */
+const { firebaseConfig, RECAPTCHA_SITE_KEY, EMERGENCY_NUMBER, CLOUD_MODEL } = window.HEALTH_CONFIG || {};
+// Cloud models tried in order if one is overloaded or not found (config.js can put its own first).
+const CLOUD_MODELS = (() => {
+  let last = ""; try { last = localStorage.getItem("healthplus:model") || ""; } catch {}
+  return [last, CLOUD_MODEL, "gemini-3.5-flash", "gemini-3.5-flash-lite", "gemini-3.1-flash-lite"].filter((m, i, a) => m && a.indexOf(m) === i);
+})();
+const CDN = "https://www.gstatic.com/firebasejs/12.8.0/";
+let localModel, cloudFor, initError;
+// Firebase starts in the background: tabs, emergency rules and history work even if it fails.
+const ready = (async () => {
+  try {
+    if (!firebaseConfig || String(firebaseConfig.apiKey).startsWith("YOUR_")) throw new Error("config.js is not filled in");
+    const [{ initializeApp }, { initializeAppCheck, ReCaptchaEnterpriseProvider }, { getAI, getGenerativeModel, GoogleAIBackend, InferenceMode }] =
+      await Promise.all([import(CDN + "firebase-app.js"), import(CDN + "firebase-app-check.js"), import(CDN + "firebase-ai.js")]);
+    if (location.hostname === "localhost" || location.search.includes("debug")) self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    const app = initializeApp(firebaseConfig);
+    initializeAppCheck(app, { provider: new ReCaptchaEnterpriseProvider(RECAPTCHA_SITE_KEY), isTokenAutoRefreshEnabled: true });
+    const ai = getAI(app, { backend: new GoogleAIBackend() });
+    // Two hybrid modes: on-device first; cloud only after explicit consent.
+    // Prompt API needs the languages declared (input: English or French, output: English).
+    const langs = { expectedInputs: [{ type: "text", languages: ["en", "fr"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] };
+    localModel = getGenerativeModel(ai, { mode: InferenceMode.ONLY_ON_DEVICE, inCloudParams: { model: CLOUD_MODELS[0] }, onDeviceParams: { createOptions: { temperature: 0.2, topK: 8, ...langs } } });
+    cloudFor = (m) => getGenerativeModel(ai, { mode: InferenceMode.ONLY_IN_CLOUD, inCloudParams: { model: m, generationConfig: { temperature: 0.2 } } });
+  } catch (e) { initError = e; console.error("Health+ AI could not start:", e); }
+})();
+async function withFallback(run) {
+  let last;
+  for (const m of CLOUD_MODELS) { try { const out = await run(m); try { localStorage.setItem("healthplus:model", m); } catch {} return out; } catch (e) { last = e; console.warn("Cloud model failed:", m, e); } }
+  throw last;
+}
+const startFail = () => "Health+ could not start its AI: " + (initError.message || initError) + ". Open the browser console (Ctrl+Shift+I) for details.";
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+/* ---- Red flags: fixed rules, never decided by the AI. Over-triggers on purpose (e.g. "no chest pain"). ---- */
+const RED = [/chest (pain|pressure|tightness)/, /douleur (a la |dans la )?(poitrine|thoracique)/, /(can.?t|cannot|difficulty|trouble) breath/, /short(ness)? of breath/,
+  /(difficulte|mal|n.?arrive pas) a respirer/, /essoufflement/, /unconscious|passed out|fainted|not responding/, /inconscient|perte de connaissance|evanoui/,
+  /severe bleeding|bleeding (a lot|heavily)|won.?t stop bleeding/, /saignement (abondant|important)|hemorragie/, /seizure|convulsion/,
+  /face (is )?droop|slurred speech|sudden (weakness|numbness)|paralys/, /visage (qui )?(tombe|paralys)|parle mal|paralysie/,
+  /suicid|kill myself|want to die|me tuer|veux mourir/];
+const INFANT_FEVER = /fever|fievre|temperature/;
+const isRed = (text, age) => RED.some((r) => r.test(norm(text))) || (age === "Under 3 months" && INFANT_FEVER.test(norm(text)));
+
+function setBadge(kind, label) { const b = $("badge"); b.className = kind; b.textContent = label; }
+const SRC = { ON_DEVICE: ["local", "On-device · private"], IN_CLOUD: ["cloud", "Cloud · data sent"] };
+
+function showEmergency() {
+  $("callbox").innerHTML = EMERGENCY_NUMBER ? `<a class="call" href="tel:${esc(EMERGENCY_NUMBER)}">Call ${esc(EMERGENCY_NUMBER)}</a>` : "";
+  $("emerg").showModal();
+}
+
+const prompt = (d) => `You help someone prepare for a visit to a health professional. You never diagnose, never name diseases, never suggest treatments or medicines, and never reassure.
+Return ONLY a JSON object: {"symptoms":[string],"body_areas":[string],"warning_signs_mentioned":[string],"follow_up_questions":[string, at most 4],"orientation":"routine"|"soon"|"urgent"}
+Use "urgent" for anything serious or quickly worsening. If unsure, choose the higher level. Write in English.
+Age range: ${d.age}. Duration: ${d.dur}.
+Description: """${d.text}"""`;
+
+function parse(raw) {
+  try {
+    const j = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1));
+    const arr = (v) => (Array.isArray(v) ? v.map(String).slice(0, 8) : []);
+    return { symptoms: arr(j.symptoms), areas: arr(j.body_areas), warn: arr(j.warning_signs_mentioned), qs: arr(j.follow_up_questions).slice(0, 4),
+      level: ["routine", "soon", "urgent"].includes(j.orientation) ? j.orientation : "soon" };
+  } catch { return { symptoms: [], areas: [], warn: [], qs: [], level: "soon", failed: true }; }
+}
+
+async function generate(model, d) { const r = await model.generateContent(prompt(d)); return { out: parse(r.response.text()), src: r.response.inferenceSource }; }
+const ask = () => new Promise((res) => { const c = $("consent"); c.showModal(); $("yes").onclick = () => { c.close(); res(true); }; $("no").onclick = () => { c.close(); res(false); }; });
+
+const LABEL = { routine: "Routine visit", soon: "See a health professional soon", urgent: "Seek care today" };
+const li = (a) => (a.length ? `<ul>${a.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>` : "<p>None noted.</p>");
+
+function render(d, o, src) {
+  const flagged = isRed(d.text, d.age);
+  if (flagged) o.level = "urgent"; // fixed rules always win over the model
+  const summary = `Health+ summary (not a diagnosis)\nAge range: ${d.age}\nDuration: ${d.dur}\nSymptoms: ${o.symptoms.join("; ") || "see description"}\nBody areas: ${o.areas.join("; ") || "-"}\nWarning signs mentioned: ${o.warn.join("; ") || "none noted"}\nOrientation: ${LABEL[o.level]}\nAlert rules (fixed keywords, not AI): ${flagged ? "triggered" : "not triggered"}\nPatient’s words: ${d.text}\nNot a diagnosis, not a prescription.`;
+  save("Symptoms", o.level, summary);
+  $("result").hidden = false;
+  $("result").innerHTML = `<div class="band ${o.level}"><h2>${LABEL[o.level]}</h2><p>This is guidance for preparing a visit, not a diagnosis. Please show this to a health professional.</p></div>
+  ${o.failed ? "<p>The AI answer could not be read. Please see a health professional.</p>" : ""}
+  <h3>Symptoms</h3>${li(o.symptoms)}<h3>Warning signs mentioned</h3>${li(o.warn)}<h3>Questions a professional may ask</h3>${li(o.qs)}
+  <h3>Summary to show at the clinic</h3><pre id="sum">${esc(summary)}</pre><button id="copy" type="button">Copy summary</button>
+  <details class="pro"><summary>For the health professional</summary>
+  <p class="fine"><b>Patient-reported and unverified. Not a diagnosis, not a prescription.</b></p>
+  <dl><dt>Age range</dt><dd>${esc(d.age)}</dd><dt>Duration</dt><dd>${esc(d.dur)}</dd>
+  <dt>Reported symptoms</dt><dd>${esc(o.symptoms.join("; ") || "see the patient’s own words")}</dd>
+  <dt>Patient’s own words</dt><dd>${esc(d.text)}</dd>
+  <dt>Alert rules (fixed keyword rules, not AI)</dt><dd>${flagged ? "Triggered: the patient mentioned warning signs." : "Not triggered. The rules only scan a short list of keywords."}</dd>
+  <dt>Questions to complete the history</dt><dd>${li(o.qs)}</dd></dl></details>
+  <p>Processed ${src === "ON_DEVICE" ? "on this device." : "in the cloud, with your consent."} Saved on this device only.</p>`;
+  $("copy").onclick = () => navigator.clipboard.writeText(summary);
+}
+
+$("form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const d = { text: $("text").value.trim(), age: $("age").value, dur: $("dur").value };
+  if (isRed(d.text, d.age)) showEmergency();
+  $("go").disabled = true; $("result").hidden = true; setBadge("", "Working…");
+  $("status").textContent = "Preparing the on-device model. The first use downloads it and can take a while.";
+  try {
+    await ready;
+    if (initError) { setBadge("", "Ready"); $("status").textContent = startFail(); return; }
+    let res;
+    try { res = await generate(localModel, d); }
+    catch (err) {
+      console.warn("On-device unavailable:", err);
+      $("payload").textContent = `Age range: ${d.age}\nDuration: ${d.dur}\nDescription: ${d.text}`;
+      if (!(await ask())) { setBadge("", "Ready"); $("status").textContent = "Nothing was sent. Your text stays on this device."; return; }
+      $("status").textContent = "Sending to the cloud…";
+      res = await withFallback((m) => generate(cloudFor(m), d));
+    }
+    setBadge(...(SRC[res.src] || ["", "Done"]));
+    $("status").textContent = "";
+    render(d, res.out, res.src);
+  } catch (err) {
+    console.error(err); setBadge("", "Ready");
+    $("status").textContent = "The AI could not answer (no connection or service error). Your text stays on this device. If you feel unwell, see a health professional.";
+  } finally { $("go").disabled = false; }
+});
+$("cont").onclick = () => $("emerg").close();
+$("clear").onclick = () => { try { localStorage.removeItem("careprep:hist"); } catch {} countUp(); $("status").textContent = "Saved data deleted."; };
+
+/* ---- Tabs, history, status strip ---- */
+const VIEWS = ["home", "check", "scan", "hist"];
+document.querySelectorAll("[data-go]").forEach((b) => (b.onclick = () => show(b.dataset.go)));
+function show(v) { VIEWS.forEach((x) => { $("v-" + x).classList.toggle("on", x === v); document.querySelector(`#tabs [data-v=${x}]`).classList.toggle("on", x === v); }); if (v === "hist") drawHist(); scrollTo(0, 0); }
+document.querySelectorAll("#tabs button").forEach((b) => (b.onclick = () => show(b.dataset.v)));
+const hist = () => { try { return JSON.parse(localStorage.getItem("careprep:hist") || "[]"); } catch { return []; } };
+const countUp = () => ($("cnt").textContent = hist().length + " saved on this device");
+function save(kind, level, summary) { const a = hist(); a.unshift({ ts: Date.now(), kind, level, summary }); try { localStorage.setItem("careprep:hist", JSON.stringify(a.slice(0, 30))); } catch {} countUp(); }
+function drawHist() {
+  const a = hist();
+  $("hlist").innerHTML = a.length ? a.map((r, i) => `<details class="rec"><summary><b class="${r.level}">${LABEL[r.level]}</b> · ${esc(r.kind)} · ${new Date(r.ts).toLocaleString()}</summary><pre>${esc(r.summary)}</pre><button type="button" class="ghost" data-i="${i}">Delete</button></details>`).join("") : "<p>No saved summaries yet.</p>";
+  $("hlist").querySelectorAll("[data-i]").forEach((b) => (b.onclick = () => { const x = hist(); x.splice(+b.dataset.i, 1); localStorage.setItem("careprep:hist", JSON.stringify(x)); drawHist(); countUp(); }));
+}
+const net = () => { $("net").textContent = navigator.onLine ? "Online" : "Offline"; $("net").className = navigator.onLine ? "ok" : "off"; };
+addEventListener("online", net); addEventListener("offline", net); net(); countUp();
+(async () => { try { $("nano").textContent = "On-device model: " + (await LanguageModel.availability({ expectedInputs: [{ type: "text", languages: ["en", "fr"] }], expectedOutputs: [{ type: "text", languages: ["en"] }] })); } catch { $("nano").textContent = "On-device model: not supported here"; } })();
+
+/* ---- Photo scan: cloud only, after consent; skin photos need a detailed description first ---- */
+const RX = `You read a photo of a prescription or medicine box. Copy only what is written. Do not give advice, do not judge doses, do not check interactions.
+Return ONLY JSON: {"items":["Name - dose - frequency, exactly as written"],"unreadable":[string],"orientation":"routine"}. Write in English.`;
+const skinPrompt = (ctx) => `You describe a photo of a skin area to help prepare a consultation. Never name a disease, never say whether it is harmless or serious, never reassure, never suggest treatment. Describe only visible features (color, relative size, shape, borders, surface).
+Patient details: ${ctx}
+Return ONLY JSON: {"items":[string],"unreadable":[],"orientation":"soon"|"urgent"}. If unsure choose "urgent". Write in English.`;
+const stype = $("stype"); let photo = null;
+stype.onchange = () => ($("skinq").hidden = stype.value !== "skin"); stype.onchange();
+function clean(f) { return new Promise((res, rej) => { const im = new Image(); im.onload = () => { const s = Math.min(1, 1024 / Math.max(im.width, im.height)), c = document.createElement("canvas"); c.width = im.width * s; c.height = im.height * s; c.getContext("2d").drawImage(im, 0, 0, c.width, c.height); const url = c.toDataURL("image/jpeg", 0.85); res({ url, data: url.split(",")[1] }); }; im.onerror = rej; im.src = URL.createObjectURL(f); }); }
+$("file").onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { photo = await clean(f); $("prev").src = photo.url; $("prev").hidden = false; $("fname").textContent = "Photo ready. Location data removed. Tap to change."; } catch { $("sstat").textContent = "This image could not be read. Use a JPEG or PNG."; } };
+function readScan(raw, skin) {
+  let j = {}; try { j = JSON.parse(raw.slice(raw.indexOf("{"), raw.lastIndexOf("}") + 1)); } catch { j = { failed: 1 }; }
+  const a = (v) => (Array.isArray(v) ? v.map(String).slice(0, 10) : []);
+  let level = ["routine", "soon", "urgent"].includes(j.orientation) ? j.orientation : "soon"; if (skin && level === "routine") level = "soon";
+  return { items: a(j.items), unread: a(j.unreadable), level, failed: !!j.failed };
+}
+function drawScan(o, skin, ctx) {
+  const title = skin ? "Skin photo" : "Prescription";
+  const sum = `Health+ ${title} summary (not a diagnosis)\n${skin ? ctx + "\nVisible features: " : "As written: "}${o.items.join("; ") || "-"}\nOrientation: ${LABEL[o.level]}`;
+  save(title, o.level, sum); $("sres").hidden = false;
+  $("sres").innerHTML = `<div class="band ${o.level}"><h2>${LABEL[o.level]}</h2><p>${skin ? "This describes what is visible. It is not a diagnosis and cannot tell whether something is harmless. Show it to a health professional." : "This copies what is written. Confirm every medicine and dose with a pharmacist or doctor."}</p></div>${o.failed ? "<p>The AI answer could not be read. Please see a health professional.</p>" : ""}<h3>${skin ? "Visible features" : "Medicines as written"}</h3>${li(o.items)}${o.unread.length ? "<h3>Hard to read</h3>" + li(o.unread) : ""}<p>Processed in the cloud with your consent. Saved on this device only.</p>`;
+}
+$("sform").addEventListener("submit", async (e) => {
+  e.preventDefault(); const skin = stype.value === "skin", out = $("sstat"); $("sres").hidden = true;
+  if (!photo) { out.textContent = "Add a photo first."; return; }
+  let ctx = "";
+  if (skin) {
+    const q = { area: $("sarea").value.trim(), since: $("ssince").value, change: $("schange").value, notes: $("snotes").value.trim(), signs: [...document.querySelectorAll("#skinq [name=sg]:checked")].map((x) => x.value) };
+    if (!q.area || q.notes.length < 40) { out.textContent = "Before a skin photo, give the body area and describe the symptoms in detail (at least 40 characters)."; return; }
+    if (isRed(q.notes, "") || (q.change === "Spreading fast" && q.signs.includes("Fever"))) showEmergency();
+    ctx = `Area: ${q.area}. Since: ${q.since}. Change: ${q.change}. Signs: ${q.signs.join(", ") || "none"}. Notes: ${q.notes}`;
+  }
+  if (!navigator.onLine) { out.textContent = "Photo analysis needs a connection. Your photo stays on this device."; return; }
+  await ready; if (initError) { out.textContent = startFail(); return; }
+  $("payload").textContent = ctx || "Photo of a prescription or medicine box"; $("pimg").src = photo.url; $("pimg").hidden = false;
+  const ok = await ask(); $("pimg").hidden = true; if (!ok) { out.textContent = "Nothing was sent."; return; }
+  $("go2").disabled = true; setBadge("", "Working…"); out.textContent = "Analyzing in the cloud…";
+  try {
+    const r = await withFallback((m) => cloudFor(m).generateContent([skin ? skinPrompt(ctx) : RX, { inlineData: { mimeType: "image/jpeg", data: photo.data } }]));
+    setBadge(...(SRC[r.response.inferenceSource] || ["cloud", "Cloud · data sent"])); out.textContent = "";
+    drawScan(readScan(r.response.text(), skin), skin, ctx);
+  } catch (err) { console.error(err); setBadge("", "Ready"); out.textContent = "The photo could not be analyzed (no connection or service error). Your photo stays on this device."; }
+  finally { $("go2").disabled = false; }
+});
+</script>
+<script>if ("serviceWorker" in navigator) addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));</script>
+</body>
+</html>
