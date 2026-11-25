@@ -1,6 +1,6 @@
 /* Health+ service worker: the app opens offline after one visit online. */
-const V = "healthplus-v2";
-const SHELL = ["./", "img/hero-heart.svg", "img/stethoscope.svg", "img/health-ui.svg"];
+const V = "healthplus-v3";
+const SHELL = ["./", "manifest.webmanifest", "icon-192.png", "icon-512.png", "img/hero-heart.svg", "img/stethoscope.svg", "img/health-ui.svg"];
 const CDN = /^https:\/\/(www\.gstatic\.com\/firebasejs|fonts\.googleapis\.com|fonts\.gstatic\.com)\//;
 
 self.addEventListener("install", (e) => {
